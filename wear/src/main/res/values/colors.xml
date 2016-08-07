@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#202020</color>
+    <color name="digital_time">#E0E0E0</color>
+    <color name="digital_text">#A0A0A0</color>
+    <color name="digital_title_text">#598FFF</color>
+
+</resources>
