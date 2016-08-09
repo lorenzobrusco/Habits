@@ -13,7 +13,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.telephony.TelephonyManager;
+import android.text.format.Time;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,22 +22,32 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
+import com.unical.informatica.lorenzo.habits.support.StringBuilder;
 import com.unical.informatica.lorenzo.habits.utils.PermissionCheckUtils;
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, MessageApi.MessageListener {
 
 
     private static final String WEAR_MESSAGE_PATH = "/message";
     private static final int REQUEST_ALL_MISSING_PERMISSIONS = 1;
     private GoogleApiClient mGoogleApiClient;
+    private Date mDate;
+    private Time mTime;
     private Location mLocation;
+    private String location;
+    private String day;
+    private String time;
     private String people;
-    private String action;
-
+    private String heart_rate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,17 +63,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     .addApi(LocationServices.API)
                     .build();
         }
-        people = getIntent().getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+        this.mDate = new Date();
+        this.mTime = new Time();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MainActivity.this.getLocation();
-                MainActivity.this.sendMessage(WEAR_MESSAGE_PATH, "this is a test");
-                if (people != null)
-                    Toast.makeText(MainActivity.this, people, Toast.LENGTH_SHORT).show();
+                buildRecord();
             }
         });
+
+
     }
 
     @Override
@@ -86,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-
+        Wearable.MessageApi.addListener(this.mGoogleApiClient, this);
     }
 
     @Override
@@ -124,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         mLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
-        Toast.makeText(this, mLocation.getLatitude() + " - " + mLocation.getLongitude(), Toast.LENGTH_SHORT).show();
+        this.location = mLocation.getLatitude() + "-" + mLocation.getLongitude();
     }
 
     @Override
@@ -144,30 +154,47 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    private void sendMessage(final String path, final String message) {
-        //Send messago to paired weareble
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                NodeApi.GetConnectedNodesResult nodesResult = Wearable.NodeApi.getConnectedNodes(MainActivity.this.mGoogleApiClient).await();
-                for (Node node : nodesResult.getNodes()) {
-                    MessageApi.SendMessageResult sendMessageResult = Wearable.MessageApi.sendMessage(MainActivity.this.mGoogleApiClient,
-                            node.getId(), path, message.getBytes()).await();
-                }
+
+    @SuppressLint("NewApi")
+    private void requestAllRequiredPermissions() {
+        ArrayList<String> notGrantedPermissions = new ArrayList<>();
+
+        for (String permission : getRequiredPermissions()) {
+            if (!PermissionCheckUtils.hasPermission(getApplicationContext(), permission)) {
+                notGrantedPermissions.add(permission);
             }
-        }).start();
+        }
+
+        if (notGrantedPermissions.size() > 0) {
+            requestPermissions(notGrantedPermissions.toArray(new String[notGrantedPermissions.size()]),
+                    REQUEST_ALL_MISSING_PERMISSIONS);
+        }
+    }
+
+    @Override
+    public void onMessageReceived(MessageEvent messageEvent) {
+        if (messageEvent.getPath().equalsIgnoreCase(WEAR_MESSAGE_PATH)) {
+            try {
+                final String message;
+                message = new String(messageEvent.getData(), "UTF-8");
+                this.heart_rate = message;
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
      * @return All permission which this activity needs
      */
     protected String[] getRequiredPermissions() {
-        return new String[] {
+        return new String[]{
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.INTERNET,
                 Manifest.permission.READ_PHONE_STATE,
                 Manifest.permission.READ_CONTACTS,
-                Manifest.permission.RECEIVE_SMS
+                Manifest.permission.RECEIVE_SMS,
+                Manifest.permission.BODY_SENSORS
         };
     }
 
@@ -187,22 +214,35 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return true;
     }
 
-    @SuppressLint("NewApi")
-    private void requestAllRequiredPermissions() {
-        ArrayList<String> notGrantedPermissions = new ArrayList<>();
-
-        for (String permission : getRequiredPermissions()) {
-            if (!PermissionCheckUtils.hasPermission(getApplicationContext(), permission)) {
-                notGrantedPermissions.add(permission);
+    private void sendMessage(final String path, final String message) {
+        //Send messago to paired weareble
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NodeApi.GetConnectedNodesResult nodesResult = Wearable.NodeApi.getConnectedNodes(MainActivity.this.mGoogleApiClient).await();
+                for (Node node : nodesResult.getNodes()) {
+                    MessageApi.SendMessageResult sendMessageResult = Wearable.MessageApi.sendMessage(MainActivity.this.mGoogleApiClient,
+                            node.getId(), path, message.getBytes()).await();
+                }
             }
-        }
-
-        if (notGrantedPermissions.size() > 0) {
-            requestPermissions(notGrantedPermissions.toArray(new String[notGrantedPermissions.size()]),
-                    REQUEST_ALL_MISSING_PERMISSIONS);
-        }
+        }).start();
     }
 
+    private void getTime() {
+        SimpleDateFormat mSimpleDateformat = new SimpleDateFormat("E");
+        Calendar mCalendar = Calendar.getInstance();
+        mCalendar.setTime(mDate);
+        this.day = mSimpleDateformat.format(mDate) + "-" + mCalendar.get(Calendar.DAY_OF_MONTH);
+        this.time = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
+    }
+
+    private void buildRecord() {
+        this.getLocation();
+        this.sendMessage(WEAR_MESSAGE_PATH, "this is a test");
+        this.getTime();
+        String string = new StringBuilder().buildTuple(this.location, this.day, this.time, "?", "?", this.heart_rate, "?");
+        Toast.makeText(this, string, Toast.LENGTH_SHORT).show();
+    }
 }
 
 

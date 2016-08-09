@@ -7,7 +7,7 @@ import android.hardware.SensorEventListener;
 /**
  * This class is used when needed to detecion a shake of the your weareble
  */
-public class ShakeDetector  implements SensorEventListener {
+public class ShakeDetector implements SensorEventListener {
 
     /* minimum acceleration needed to count as a shake movement */
     private static final int MIN_SHAKE_ACCELERATION = 8;

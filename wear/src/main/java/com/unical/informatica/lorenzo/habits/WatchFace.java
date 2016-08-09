@@ -13,9 +13,14 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
@@ -23,10 +28,14 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 import android.widget.Toast;
+
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
@@ -39,7 +48,7 @@ import java.util.concurrent.TimeUnit;
  * Digital watch face with seconds. In ambient mode, the seconds aren't displayed. On devices with
  * low-bit ambient mode, the text is drawn without anti-aliasing in ambient mode.
  */
-public class WatchFace extends CanvasWatchFaceService implements MessageApi.MessageListener, GoogleApiClient.ConnectionCallbacks {
+public class WatchFace extends CanvasWatchFaceService implements MessageApi.MessageListener, GoogleApiClient.ConnectionCallbacks, SensorEventListener {
 
     /**
      * Strings used to comunicate with the paired wearable
@@ -49,8 +58,28 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
     /**
      * Google connection
      */
-    private GoogleApiClient apiClient;
+    private GoogleApiClient mGoogleApiClient;
 
+    /**
+     * sensormanager
+     */
+    private SensorManager mSensorManager;
+
+    /**
+     * Sensor to access at the heart rate
+     */
+    private Sensor mHeartRateSensor;
+    private int currentHeartRate = 0;
+
+    /**
+     * Sensor to detection shake
+     */
+    private ShakeDetector mShakeDetector;
+    private Sensor mAcceleration;
+
+    /**
+     * Type Watch face
+     */
     private static final Typeface NORMAL_TYPEFACE =
             Typeface.create(Typeface.SERIF, Typeface.NORMAL);
     /**
@@ -69,14 +98,23 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
      */
     @Override
     public Engine onCreateEngine() {
+        this.mSensorManager = (SensorManager) this.getSystemService(SENSOR_SERVICE);
         this.setupGoogleApiClient();
+        this.setupHeartRateSensor();
+        this.setupVibrate();
         return new Engine();
     }
 
+    @Override
+    public void onDestroy() {
+        this.mSensorManager.unregisterListener(mShakeDetector);
+        this.mSensorManager.unregisterListener(this);
+        super.onDestroy();
+    }
 
     @Override
     public void onConnected(Bundle bundle) {
-        Wearable.MessageApi.addListener(this.apiClient, this);
+        Wearable.MessageApi.addListener(this.mGoogleApiClient, this);
     }
 
     @Override
@@ -86,27 +124,67 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
 
     @Override
     public void onMessageReceived(final MessageEvent messageEvent) {
-
         if (messageEvent.getPath().equalsIgnoreCase(WEAR_MESSAGE_PATH)) {
-            try {
-                final String message;
-                message = new String(messageEvent.getData(), "UTF-8");
-                Toast.makeText(WatchFace.this, message, Toast.LENGTH_SHORT).show();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            Log.d("wear","request heart rate");
+            this.sendMessage(WEAR_MESSAGE_PATH, String.valueOf(this.currentHeartRate));
         }
+    }
+
+    private void sendMessage(final String path, final String message) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NodeApi.GetConnectedNodesResult nodesResult = Wearable.NodeApi.getConnectedNodes(WatchFace.this.mGoogleApiClient).await();
+                for (Node node : nodesResult.getNodes()) {
+                    MessageApi.SendMessageResult sendMessageResult = Wearable.MessageApi.sendMessage(WatchFace.this.mGoogleApiClient,
+                            node.getId(), path, message.getBytes()).await();
+                }
+            }
+        }).start();
     }
 
     private void setupGoogleApiClient() {
         /** Setup googleApiClient and it try to connection */
         Log.d("connection", "wearable is connect");
-        this.apiClient = new GoogleApiClient.Builder(this)
+        this.mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .build();
+        this.mGoogleApiClient.connect();
 
-        this.apiClient.connect();
+    }
+
+    private void setupHeartRateSensor() {
+        this.mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
+        this.mSensorManager.registerListener(this, this.mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    private void setupVibrate() {
+        this.mAcceleration = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        this.mShakeDetector = new ShakeDetector(new ShakeDetector.OnShakeListener() {
+            @Override
+            public void onShake() {
+                Vibrator vibrator = (Vibrator) getSystemService(WatchFace.this.VIBRATOR_SERVICE);
+                MakePatternToVibrate toVibrate = new MakePatternToVibrate(500, 100, 500, 1000);
+                vibrator.vibrate(toVibrate.setupPattern(), -1);
+            }
+        });
+        this.mSensorManager.registerListener(this.mShakeDetector, this.mAcceleration, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        if (sensorEvent.sensor.getType() == Sensor.TYPE_HEART_RATE && sensorEvent.values.length > 0) {
+            int newValue = Math.round(sensorEvent.values[0]);
+            if (currentHeartRate != newValue && newValue != 0) {
+                this.currentHeartRate = newValue;
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
 
@@ -134,7 +212,6 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
      * create class engine and implements service callback methods
      */
     private class Engine extends CanvasWatchFaceService.Engine {
-
 
         /**
          * resoures
@@ -211,7 +288,6 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
             /**
              * create graphic styles
              */
-
             Resources resources = WatchFace.this.getResources();
 
             /**
