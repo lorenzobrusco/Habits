@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
+                    .addApi(Wearable.API)
                     .addApi(LocationServices.API)
-                    .addApiIfAvailable(Wearable.API)
                     .build();
         }
         people = getIntent().getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
@@ -165,7 +165,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return new String[] {
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.INTERNET,
-                Manifest.permission.READ_PHONE_STATE
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.READ_CONTACTS,
+                Manifest.permission.RECEIVE_SMS
         };
     }
 
