@@ -13,7 +13,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.format.Time;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,13 +40,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private static final int REQUEST_ALL_MISSING_PERMISSIONS = 1;
     private GoogleApiClient mGoogleApiClient;
     private Date mDate;
-    private Time mTime;
     private Location mLocation;
-    private String location;
-    private String day;
-    private String time;
-    private String people;
-    private String heart_rate;
+    private String location = "?";
+    private String day = "?";
+    private String time = "?";
+    private String heart_rate = "?";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +61,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     .build();
         }
         this.mDate = new Date();
-        this.mTime = new Time();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     Toast.makeText(getApplicationContext(), "Please allow all permissions", Toast.LENGTH_SHORT).show();
                     finish();
                 }
-                return;
+                break;
             }
         }
     }
@@ -221,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             public void run() {
                 NodeApi.GetConnectedNodesResult nodesResult = Wearable.NodeApi.getConnectedNodes(MainActivity.this.mGoogleApiClient).await();
                 for (Node node : nodesResult.getNodes()) {
-                    MessageApi.SendMessageResult sendMessageResult = Wearable.MessageApi.sendMessage(MainActivity.this.mGoogleApiClient,
+                    Wearable.MessageApi.sendMessage(MainActivity.this.mGoogleApiClient,
                             node.getId(), path, message.getBytes()).await();
                 }
             }
@@ -229,10 +225,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     private void getTime() {
-        SimpleDateFormat mSimpleDateformat = new SimpleDateFormat("E");
-        Calendar mCalendar = Calendar.getInstance();
+
+        final Calendar mCalendar = Calendar.getInstance();
         mCalendar.setTime(mDate);
-        this.day = mSimpleDateformat.format(mDate) + "-" + mCalendar.get(Calendar.DAY_OF_MONTH);
+        this.day = new SimpleDateFormat("E").format(mDate) + "-" + mCalendar.get(Calendar.DAY_OF_MONTH);
         this.time = String.valueOf(Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
     }
 
