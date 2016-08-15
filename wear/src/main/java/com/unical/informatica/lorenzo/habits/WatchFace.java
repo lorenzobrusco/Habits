@@ -71,6 +71,15 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
     private Sensor mHeartRateSensor;
     private int currentHeartRate = 0;
 
+    private Handler handler = null;
+    private static Runnable runnable = null;
+    /**
+     * to save battery heart rate is detected only every thirtyseconds and then close for others two minutes
+     */
+    private boolean enableHeartRate = true;
+    private int time = 30000;
+    private static final long FIFTEENSECONDS = 15000;
+
     /**
      * Sensor to detection shake
      */
@@ -102,13 +111,23 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
         this.setupGoogleApiClient();
         this.setupHeartRateSensor();
         this.setupVibrate();
+        handler = new Handler();
+        runnable = new Runnable() {
+            public void run() {
+                enableOrDisenableHeartRate();
+                handler.postDelayed(runnable, time);
+            }
+        };
+        handler.postDelayed(runnable, FIFTEENSECONDS);
         return new Engine();
     }
+
 
     @Override
     public void onDestroy() {
         this.mSensorManager.unregisterListener(mShakeDetector);
         this.mSensorManager.unregisterListener(this);
+        this.mGoogleApiClient.disconnect();
         super.onDestroy();
     }
 
@@ -125,7 +144,6 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
     @Override
     public void onMessageReceived(final MessageEvent messageEvent) {
         if (messageEvent.getPath().equalsIgnoreCase(WEAR_MESSAGE_PATH)) {
-            Log.d("wear","request heart rate");
             this.sendMessage(WEAR_MESSAGE_PATH, String.valueOf(this.currentHeartRate));
         }
     }
@@ -159,14 +177,30 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
         this.mSensorManager.registerListener(this, this.mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
+    private void enableOrDisenableHeartRate() {
+        if (this.enableHeartRate) {
+            this.mSensorManager.unregisterListener(this);
+            this.time = 100000;
+        } else {
+            this.mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
+            this.mSensorManager.registerListener(this, this.mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            this.time = 30000;
+        }
+        this.enableHeartRate = ! this.enableHeartRate;
+    }
+
+
     private void setupVibrate() {
         this.mAcceleration = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         this.mShakeDetector = new ShakeDetector(new ShakeDetector.OnShakeListener() {
             @Override
             public void onShake() {
-                Vibrator vibrator = (Vibrator) getSystemService(WatchFace.this.VIBRATOR_SERVICE);
+                /**
+                 * enable to shake
+                 */
+                /*Vibrator vibrator = (Vibrator) getSystemService(WatchFace.this.VIBRATOR_SERVICE);
                 MakePatternToVibrate toVibrate = new MakePatternToVibrate(500, 100, 500, 1000);
-                vibrator.vibrate(toVibrate.setupPattern(), -1);
+                vibrator.vibrate(toVibrate.setupPattern(), -1);*/
             }
         });
         this.mSensorManager.registerListener(this.mShakeDetector, this.mAcceleration, SensorManager.SENSOR_DELAY_NORMAL);

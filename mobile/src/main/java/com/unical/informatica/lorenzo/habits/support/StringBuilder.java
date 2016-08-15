@@ -13,45 +13,45 @@ public class StringBuilder {
     private static final int PEOPLE = 4;
     private static final int HEARTRATE = 5;
     private static final int SPEED = 6;
-    private static final String sepator = "@";
+    private static final String sepator = ", ";
     private String stringToBuild = "";
 
     public String buildTuple (final String location, final String day, final String time, final String action, final String people, final String heart_rate, final String speed){
 
-        stringToBuild += location + sepator + day + sepator + time + sepator + action + sepator
-                + people + sepator + heart_rate + sepator + speed;
+        stringToBuild += "< " +location + sepator + day + sepator + time + sepator + action + sepator
+                + people + sepator + heart_rate + sepator + speed + " >\n";
         return stringToBuild;
     }
 
-    public boolean validateString(){
-        return this.stringToBuild.split(sepator).length == size;
+    public boolean validateString(String stringToCheck){
+        return stringToCheck.split(sepator).length == size;
     }
 
-    public String getLocation(){
-        return this.stringToBuild.split(sepator)[LOCATION];
+    public String getLocation(final String stringToBuild){
+        return stringToBuild.split(sepator)[LOCATION];
     }
 
-    public String getDay(){
-        return this.stringToBuild.split(sepator)[DAY];
+    public String getDay(final String stringToBuild){
+        return stringToBuild.split(sepator)[DAY];
     }
 
-    public String getTime(){
-        return this.stringToBuild.split(sepator)[TIME];
+    public String getTime(final String stringToBuild){
+        return stringToBuild.split(sepator)[TIME];
     }
 
-    public String getAction(){
-        return this.stringToBuild.split(sepator)[ACTION];
+    public String getAction(final String stringToBuild){
+        return stringToBuild.split(sepator)[ACTION];
     }
 
-    public String getPeople(){
-        return this.stringToBuild.split(sepator)[PEOPLE];
+    public String getPeople(final String stringToBuild){
+        return stringToBuild.split(sepator)[PEOPLE];
     }
 
-    public String getHeartRate(){
-        return this.stringToBuild.split(sepator)[HEARTRATE];
+    public String getHeartRate(final String stringToBuild){
+        return stringToBuild.split(sepator)[HEARTRATE];
     }
 
-    public String getSpeed(){
-        return this.stringToBuild.split(sepator)[SPEED];
+    public String getSpeed(final String stringToBuild){
+        return stringToBuild.split(sepator)[SPEED];
     }
 }

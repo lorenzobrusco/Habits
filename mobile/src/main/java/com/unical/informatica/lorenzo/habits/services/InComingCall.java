@@ -12,11 +12,23 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.unical.informatica.lorenzo.habits.model.Day;
+import com.unical.informatica.lorenzo.habits.model.Time;
+import com.unical.informatica.lorenzo.habits.support.BuildFile;
+import com.unical.informatica.lorenzo.habits.support.StringBuilder;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * handler to register a new tuple when arrive a phone call
  */
 public class InComingCall extends BroadcastReceiver {
 
+    private static final String LOGFILE = "log";
+    private String day;
+    private int time;
     private Context context;
 
     @Override
@@ -36,20 +48,42 @@ public class InComingCall extends BroadcastReceiver {
 
     private class MyPhoneStateListener extends PhoneStateListener {
 
+        private boolean callChanged = false;
+
         @Override
         public void onCallStateChanged(int state, String incomingNumber) {
 
-            Log.d("MyPhoneListener", state + "   incoming no:" + incomingNumber);
-            // state = 1 means when phone is ringing
-            if (state == 1) {
+            Log.i("MyPhoneListener", state + "   incoming no:" + incomingNumber);
+            /** state = 1 means when phone is ringing
+             *  state = 0 means when user make a callphone
+             */
+            if (state == 0) {
+                String record = this.buildRecord(this.getContactName(context, incomingNumber));
+                new BuildFile(InComingCall.this.context, new Day(day).getDayOfWeek());
+                BuildFile.getInstance(InComingCall.this.context, LOGFILE).appendFileValue(LOGFILE, record, InComingCall.this.context);
 
-                Toast toast = Toast.makeText(InComingCall.this.context, this.getContactName(context, incomingNumber), Toast.LENGTH_SHORT);
-                toast.show();
-
+            } else if (state == 1) {
+                String record = this.buildRecord(this.getContactName(context, incomingNumber));
+                new BuildFile(InComingCall.this.context, new Day(day).getDayOfWeek());
+                BuildFile.getInstance(InComingCall.this.context, LOGFILE).appendFileValue(LOGFILE, record, InComingCall.this.context);
             }
+
         }
 
-        public String getContactName(Context context, String phoneNumber) {
+        private void getTime() {
+            Date mDate = new Date();
+            final Calendar mCalendar = Calendar.getInstance();
+            mCalendar.setTime(mDate);
+            day = new SimpleDateFormat("E").format(mDate) + "-" + mCalendar.get(Calendar.DAY_OF_MONTH);
+            time = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        }
+
+        private String buildRecord(String user) {
+            this.getTime();
+            return new StringBuilder().buildTuple("?", new Day(day).getDayOfWeek(), new Time(time).getTime(), "call", user, "?", "?");
+        }
+
+        private String getContactName(Context context, String phoneNumber) {
             ContentResolver cr = context.getContentResolver();
             Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
             Cursor cursor = cr.query(uri, new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null);
