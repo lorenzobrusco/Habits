@@ -1,11 +1,9 @@
 package com.unical.informatica.lorenzo.habits.manager;
 
 import android.util.Log;
-
 import com.unical.informatica.lorenzo.habits.model.Habit;
-
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by Lorenzo on 14/08/2016.
@@ -14,7 +12,7 @@ public class HabitsManager {
 
     private static HabitsManager mHabitsManager;
     private static final String TAG = "HABITSMANAGER";
-    private Collection<Habit> habits;
+    private List<Habit> habits;
 
     public HabitsManager() {
         this.habits = new ArrayList<>();
@@ -42,7 +40,7 @@ public class HabitsManager {
         }
     }
 
-    public final Collection<Habit> getHabits() {
+    public final List<Habit> getHabits() {
         return this.habits;
     }
 

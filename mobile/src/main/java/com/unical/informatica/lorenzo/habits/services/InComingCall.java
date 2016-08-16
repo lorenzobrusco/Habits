@@ -54,20 +54,17 @@ public class InComingCall extends BroadcastReceiver {
         public void onCallStateChanged(int state, String incomingNumber) {
 
             Log.i("MyPhoneListener", state + "   incoming no:" + incomingNumber);
-            /** state = 1 means when phone is ringing
-             *  state = 0 means when user make a callphone
+            /**
+             *  state = 0 means when user close a callphone
              */
             if (state == 0) {
                 String record = this.buildRecord(this.getContactName(context, incomingNumber));
-                new BuildFile(InComingCall.this.context, new Day(day).getDayOfWeek());
-                BuildFile.getInstance(InComingCall.this.context, LOGFILE).appendFileValue(LOGFILE, record, InComingCall.this.context);
+                if(record != "null" && !record.equals(incomingNumber)) {
+                    new BuildFile(InComingCall.this.context, new Day(day).getDayOfWeek());
+                    BuildFile.getInstance(InComingCall.this.context, LOGFILE).appendFileValue(LOGFILE, record, InComingCall.this.context);
+                }
 
-            } else if (state == 1) {
-                String record = this.buildRecord(this.getContactName(context, incomingNumber));
-                new BuildFile(InComingCall.this.context, new Day(day).getDayOfWeek());
-                BuildFile.getInstance(InComingCall.this.context, LOGFILE).appendFileValue(LOGFILE, record, InComingCall.this.context);
             }
-
         }
 
         private void getTime() {

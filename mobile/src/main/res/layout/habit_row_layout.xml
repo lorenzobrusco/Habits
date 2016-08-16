@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundListView"
+    android:animateLayoutChanges="true" >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/default_dimension_row"
+        android:padding="@dimen/margin_vertical"
+        android:background="@drawable/background_with_shadow">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/rowHabitsTitle"
+            android:layout_marginTop="5dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Type: "
+            android:textColor="@color/colorPrimaryDark"
+            android:layout_marginLeft="@dimen/margin_vertical"
+             />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/margin_vertical"
+            android:maxEms="5"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_alignBottom="@id/rowHabitsTitle"
+            android:layout_toEndOf="@id/rowHabitsTitle"
+            android:id="@+id/contextRowHabitsTitle" />
+
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/deleteButton"
+            android:src="@drawable/ic_action_delete_new"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:id="@+id/contexIntoHabitRow"
+            android:layout_marginTop="@dimen/default_margin"
+            android:layout_below="@+id/rowHabitsTitle"
+            android:padding="@dimen/margin_vertical"
+            android:layout_alignParentStart="true" />
+
+
+    </RelativeLayout>
+
+</RelativeLayout>

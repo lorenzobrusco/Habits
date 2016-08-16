@@ -7,6 +7,7 @@ import com.unical.informatica.lorenzo.habits.support.StringBuilder;
  */
 public class Habit {
 
+    protected String type;
     private Location mLocation;
     private Day mDay;
     private Time mTime;
@@ -75,6 +76,12 @@ public class Habit {
     public void setmHeartRate(HeartRate mHeartRate) {
         this.mHeartRate = mHeartRate;
     }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getTEXT(){ return null;}
 
     @Override
     public boolean equals(Object obj) {

@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         final LogFragment logFragment = new LogFragment();
 
         adapter.addFragment(settingFragment, "Settings");
-        adapter.addFragment(startFragment, "Start");
+        adapter.addFragment(startFragment, "Habits");
         adapter.addFragment(logFragment, "Log");
 
         viewPager.setAdapter(adapter);
