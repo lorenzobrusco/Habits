@@ -65,7 +65,7 @@ public class Record extends Service {
         handler = new Handler();
         runnable = new Runnable() {
             public void run() {
-                HabitsManager.getInstance().buildRecord(Record.this);
+               // HabitsManager.getInstance().buildRecord(Record.this);
                 SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
                 SharedPreferences.Editor editor = settings.edit();
                 if (!currentTime.equals(HabitsManager.getInstance().getNameTime())) {
@@ -82,7 +82,7 @@ public class Record extends Service {
                         index = 0;
                     HabitsManager.getInstance().buildNotify(Record.this, habit);
                     HabitsManager.getInstance().vibrate(Record.this, 300);
-                    HabitsManager.getInstance().sendRoutines(habit.getPrefix() + "--" + habit.getText());
+                    HabitsManager.getInstance().sendRoutines("Remember to "+ "--" + habit.getText());
                 }
                 if(currentTime.equals("MIDDAY") && settings.getBoolean(DAILY,false)){
                     editor.putBoolean(DAILY, true);

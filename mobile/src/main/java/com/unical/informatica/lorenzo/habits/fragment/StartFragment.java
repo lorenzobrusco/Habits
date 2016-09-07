@@ -55,6 +55,8 @@ public class StartFragment extends Fragment {
                                            int pos, long id) {
                 Toast.makeText(getContext(), "show it on wearable", Toast.LENGTH_LONG).show();
                 Habit habit = HabitsManager.getInstance().getHabit(pos);
+                HabitsManager.getInstance().buildNotify(getContext(), habit);
+                HabitsManager.getInstance().vibrate(getContext(), 300);
                 HabitsManager.getInstance().sendRoutines(habit.getType() + "--" + habit.getText());
 
                 return true;
@@ -142,10 +144,7 @@ public class StartFragment extends Fragment {
                 actionButtonMenu.close(true);
                 CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), "Position");
                 customDialogAdd.show();
-               /* Intent intent = new Intent(MainActivity.this, EventActivity.class);
-                intent.putExtra("Modify",true);
-                intent.putExtra("Type", TYPENOTE);
-                startActivity(intent);*/
+
             }
 
         });
@@ -156,10 +155,7 @@ public class StartFragment extends Fragment {
                 actionButtonMenu.close(true);
                 CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), "Action");
                 customDialogAdd.show();
-               /* Intent intent = new Intent(MainActivity.this, EventActivity.class);
-                intent.putExtra("Modify",true);
-                intent.putExtra("Type", TYPENOTE);
-                startActivity(intent);*/
+
             }
 
         });
@@ -170,10 +166,7 @@ public class StartFragment extends Fragment {
                 actionButtonMenu.close(true);
                 CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), "Hobby");
                 customDialogAdd.show();
-               /* Intent intent = new Intent(MainActivity.this, EventActivity.class);
-                intent.putExtra("Modify",true);
-                intent.putExtra("Type", TYPENOTE);
-                startActivity(intent);*/
+
             }
 
         });
@@ -184,10 +177,7 @@ public class StartFragment extends Fragment {
                 actionButtonMenu.close(true);
                 CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), "Other");
                 customDialogAdd.show();
-               /* Intent intent = new Intent(MainActivity.this, EventActivity.class);
-                intent.putExtra("Modify",true);
-                intent.putExtra("Type", TYPENOTE);
-                startActivity(intent);*/
+
             }
 
         });

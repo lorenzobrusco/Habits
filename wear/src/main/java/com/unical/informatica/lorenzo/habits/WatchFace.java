@@ -153,6 +153,7 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
                 final String message;
                 message = new String(messageEvent.getData(), "UTF-8");
                 String[] split = message.split("--");
+                this.type = split[0];
                 this.text = split[1];
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
