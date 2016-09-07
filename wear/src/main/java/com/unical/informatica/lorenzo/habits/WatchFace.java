@@ -54,6 +54,9 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
      * Strings used to comunicate with the paired wearable
      */
     private static final String WEAR_MESSAGE_PATH = "/message";
+    private static final String WEAR_TEXT_PATH = "/text";
+    private String type = "Nothing to rememeber";
+    private String text= "            good day";
 
     /**
      * Google connection
@@ -145,6 +148,16 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
     public void onMessageReceived(final MessageEvent messageEvent) {
         if (messageEvent.getPath().equalsIgnoreCase(WEAR_MESSAGE_PATH)) {
             this.sendMessage(WEAR_MESSAGE_PATH, String.valueOf(this.currentHeartRate));
+        } else if(messageEvent.getPath().equalsIgnoreCase(WEAR_TEXT_PATH)) {
+            try {
+                final String message;
+                message = new String(messageEvent.getData(), "UTF-8");
+                String[] split = message.split("--");
+                this.text = split[1];
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -550,8 +563,9 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
                     canvas.drawText(second, mXOffsetSecond + 13, mYOffsetSecond, mSecondPaint);
                 }
                 //TODO text to get from ai
-                canvas.drawText("Tutto sotto controllo.", mXOffsetText, mYOffsetTitleText, mTitleTextPaint);
-                canvas.drawText("     Buona giornata.", mXOffsetText, mYOffsetText, mTextPaint);
+
+                canvas.drawText(WatchFace.this.type, mXOffsetText, mYOffsetTitleText, mTitleTextPaint);
+                canvas.drawText(WatchFace.this.text, mXOffsetText, mYOffsetText, mTextPaint);
 
             } else {
 

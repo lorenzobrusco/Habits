@@ -15,21 +15,6 @@ import android.content.Context;
  */
 public class BuildFile {
 
-    private static BuildFile mBuildFile = null;
-    private Context context;
-    private String fileName;
-
-    public BuildFile(final Context context, final String fileName) {
-        this.fileName = fileName;
-        this.context = context;
-    }
-
-    public static BuildFile getInstance(final Context context, final String fileName) {
-        if (mBuildFile == null)
-            mBuildFile = new BuildFile(context, fileName);
-        return mBuildFile;
-    }
-
 
     public String getFileValue(String fileName, Context context) {
         try {

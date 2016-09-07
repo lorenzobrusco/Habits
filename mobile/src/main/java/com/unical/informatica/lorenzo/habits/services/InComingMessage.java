@@ -15,9 +15,11 @@ import android.widget.Toast;
 
 import com.unical.informatica.lorenzo.habits.model.Day;
 import com.unical.informatica.lorenzo.habits.model.Time;
+import com.unical.informatica.lorenzo.habits.model.WeekOfMounth;
 import com.unical.informatica.lorenzo.habits.support.BuildFile;
 import com.unical.informatica.lorenzo.habits.support.StringBuilder;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -30,6 +32,8 @@ public class InComingMessage extends BroadcastReceiver {
     private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
     private static final String TAG = "SMSBroadcastReceiver";
     private static final String LOGFILE = "log";
+    private String currentDate;
+    private String weekOfMounth;
     private String day;
     private int time;
 
@@ -46,7 +50,7 @@ public class InComingMessage extends BroadcastReceiver {
                 }
                 if (messages.length > -1) {
                     String record = this.buildRecord(this.getContactName(context, messages[0].getOriginatingAddress()));
-                    BuildFile.getInstance(context,LOGFILE).appendFileValue(LOGFILE, record , context);
+                    new BuildFile().appendFileValue(LOGFILE, record, context);
                 }
             }
         }
@@ -59,11 +63,18 @@ public class InComingMessage extends BroadcastReceiver {
         mCalendar.setTime(mDate);
         day = new SimpleDateFormat("E").format(mDate) + "-" + mCalendar.get(Calendar.DAY_OF_MONTH);
         time = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        weekOfMounth = String.valueOf(Calendar.getInstance().get(Calendar.WEEK_OF_MONTH));
+    }
+
+    private void getCurrentDate() {
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+        currentDate = df.format(Calendar.getInstance().getTime());
     }
 
     private String buildRecord(String user) {
         this.getTime();
-        return new StringBuilder().buildTuple("?", new Day(day).getDayOfWeek(), new Time(time).getTime(), "message", user, "?", "?");
+        this.getCurrentDate();
+        return new StringBuilder().buildTuple("?", currentDate, new Day(day).getDayOfWeek(), new Time(time).getTime(), "message", user, "?", new WeekOfMounth(Integer.parseInt(weekOfMounth)).getWeekOfMounth());
     }
 
 

@@ -26,11 +26,9 @@ public class Time {
             return MIDDAY;
         } else if (this.mTime >= 15 && this.mTime < 18) {
             return AFTERNOON;
-        } else if (this.mTime >= 18 && this.mTime < 20) {
+        } else if (this.mTime >= 18 && this.mTime < 21) {
             return LATE_AFTERNOON;
         } else
             return NIGHT;
     }
-
-
 }

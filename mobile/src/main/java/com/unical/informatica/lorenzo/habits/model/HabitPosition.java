@@ -5,19 +5,21 @@ package com.unical.informatica.lorenzo.habits.model;
  */
 public class HabitPosition extends Habit {
 
-    private String TEXT  = "Today you didn't go: ";
+    private String TEXT = "";
 
-    public HabitPosition(String habit) {
-        super(habit);
+    public HabitPosition() {
         type = "Position";
+        prefix ="Remember to:";
     }
 
+
     @Override
-    public String getTEXT() {
+    public String getText() {
         return TEXT;
     }
 
-    public void appendTEXT(String toAppend) {
-        this.TEXT += TEXT;
+    @Override
+    public void setText(String toAppend) {
+        this.TEXT = toAppend;
     }
 }

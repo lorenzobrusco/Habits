@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#669F36</color>
-    <color name="colorPrimaryDark">#537F2B</color>
+    <color name="colorPrimary">#3B5998</color>
+    <color name="colorPrimaryDark">#324A83</color>
     <color name="colorAccent">#ff8000</color>
     <color name="backgroundListView">#eee9e9</color>
+
+    <!-- fab color -->
+    <color name="other">#0073bf</color>
+    <color name="hobby">#206620</color>
+    <color name="action">#eba117</color>
+    <color name="position">#e3501b</color>
+
+
 
     <!-- Screens background color-->
     <color name="bg_screen1">#3395ff</color>
@@ -12,16 +20,16 @@
     <color name="bg_screen4">#c873f4</color>
 
     <!-- dots inactive colors -->
-    <color name="dot_dark_screen2">#14a895</color>
-    <color name="dot_dark_screen1">#2278d4</color>
-    <color name="dot_dark_screen3">#d1395c</color>
-    <color name="dot_dark_screen4">#a854d4</color>
+    <color name="dot_dark_screen2">#c0c0c0</color>
+    <color name="dot_dark_screen1">#c0c0c0</color>
+    <color name="dot_dark_screen3">#c0c0c0</color>
+    <color name="dot_dark_screen4">#c0c0c0</color>
 
     <!-- dots active colors -->
-    <color name="dot_light_screen2">#8cf9eb</color>
-    <color name="dot_light_screen1">#93c6fd</color>
-    <color name="dot_light_screen3">#f98da5</color>
-    <color name="dot_light_screen4">#e4b5fc</color>
+    <color name="dot_light_screen2">#808080</color>
+    <color name="dot_light_screen1">#808080</color>
+    <color name="dot_light_screen3">#808080</color>
+    <color name="dot_light_screen4">#808080</color>
 
     <array name="array_dot_active">
         <item>@color/dot_light_screen1</item>

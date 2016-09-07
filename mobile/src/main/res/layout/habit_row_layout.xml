@@ -1,33 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/backgroundListView"
+    android:layout_height="wrap_content"
     android:animateLayoutChanges="true" >
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/default_dimension_row"
-        android:padding="@dimen/margin_vertical"
-        android:background="@drawable/background_with_shadow">
+        android:layout_height="wrap_content"
+        android:id="@+id/relativeLayout">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:id="@+id/imageView"
+            android:paddingBottom="4dp"
+            android:adjustViewBounds="true"
+            android:layout_centerInParent="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignTop="@+id/rowHabitsTitle" />
+
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/rowHabitsTitle"
             android:layout_marginTop="5dp"
-            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="Type: "
+            android:layout_toEndOf="@id/imageView"
             android:textColor="@color/colorPrimaryDark"
-            android:layout_marginLeft="@dimen/margin_vertical"
-             />
+            android:layout_marginLeft="@dimen/margin_vertical" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/margin_vertical"
-            android:maxEms="5"
-            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textAppearance="?android:attr/textAppearanceSmall"
             android:layout_alignBottom="@id/rowHabitsTitle"
             android:layout_toEndOf="@id/rowHabitsTitle"
             android:id="@+id/contextRowHabitsTitle" />
@@ -44,14 +51,71 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:id="@+id/rowHabitsDate"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Date: "
+            android:layout_toEndOf="@id/imageView"
+            android:layout_below="@id/rowHabitsTitle"
+            android:paddingTop="12dp"
+            android:textColor="@color/colorPrimaryDark"
+            android:layout_marginLeft="@dimen/margin_vertical" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/rowHabitsDateContext"
+            android:text="EveryDay"
+            android:paddingTop="12dp"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignBottom="@+id/rowHabitsDate"
+            android:layout_toEndOf="@+id/rowHabitsTitle" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/rowHabitsTime"
+            android:text="Time: "
+            android:paddingTop="12dp"
+            android:paddingLeft="8dp"
+            android:textColor="@color/colorPrimaryDark"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignBottom="@+id/rowHabitsDate"
+            android:layout_toEndOf="@+id/rowHabitsDateContext" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/rowHabitsTimeContext"
+            android:text="EveryTime"
+            android:paddingTop="12dp"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignBottom="@+id/rowHabitsDate"
+            android:layout_toEndOf="@+id/rowHabitsTime" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/contexTextIntoHabitRow"
+            android:paddingTop="12dp"
+            android:text="Text: "
+            android:textColor="@color/colorPrimaryDark"
+            android:layout_alignStart="@+id/rowHabitsDate"
+            android:layout_below="@+id/rowHabitsDate" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
             android:id="@+id/contexIntoHabitRow"
-            android:layout_marginTop="@dimen/default_margin"
-            android:layout_below="@+id/rowHabitsTitle"
-            android:padding="@dimen/margin_vertical"
-            android:layout_alignParentStart="true" />
+            android:layout_alignBottom="@+id/contexTextIntoHabitRow"
+            android:layout_alignStart="@+id/rowHabitsDateContext" />
+
 
 
     </RelativeLayout>
+
 
 </RelativeLayout>

@@ -14,9 +14,11 @@ import android.widget.Toast;
 
 import com.unical.informatica.lorenzo.habits.model.Day;
 import com.unical.informatica.lorenzo.habits.model.Time;
+import com.unical.informatica.lorenzo.habits.model.WeekOfMounth;
 import com.unical.informatica.lorenzo.habits.support.BuildFile;
 import com.unical.informatica.lorenzo.habits.support.StringBuilder;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -28,6 +30,8 @@ public class InComingCall extends BroadcastReceiver {
 
     private static final String LOGFILE = "log";
     private String day;
+    private String weekOfMounth;
+    private String currentDate;
     private int time;
     private Context context;
 
@@ -53,15 +57,13 @@ public class InComingCall extends BroadcastReceiver {
         @Override
         public void onCallStateChanged(int state, String incomingNumber) {
 
-            Log.i("MyPhoneListener", state + "   incoming no:" + incomingNumber);
             /**
              *  state = 0 means when user close a callphone
              */
             if (state == 0) {
-                String record = this.buildRecord(this.getContactName(context, incomingNumber));
-                if(record != "null" && !record.equals(incomingNumber)) {
-                    new BuildFile(InComingCall.this.context, new Day(day).getDayOfWeek());
-                    BuildFile.getInstance(InComingCall.this.context, LOGFILE).appendFileValue(LOGFILE, record, InComingCall.this.context);
+                String user = this.getContactName(context, incomingNumber);
+                if(user != "" && user != "null" && !user.equals(incomingNumber)) {
+                    new BuildFile().appendFileValue(LOGFILE, this.buildRecord(user), InComingCall.this.context);
                 }
 
             }
@@ -73,11 +75,18 @@ public class InComingCall extends BroadcastReceiver {
             mCalendar.setTime(mDate);
             day = new SimpleDateFormat("E").format(mDate) + "-" + mCalendar.get(Calendar.DAY_OF_MONTH);
             time = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+            weekOfMounth = String.valueOf(Calendar.getInstance().get(Calendar.WEEK_OF_MONTH));
+        }
+
+        private void getCurrentDate(){
+            DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+            currentDate = df.format(Calendar.getInstance().getTime());
         }
 
         private String buildRecord(String user) {
             this.getTime();
-            return new StringBuilder().buildTuple("?", new Day(day).getDayOfWeek(), new Time(time).getTime(), "call", user, "?", "?");
+            this.getCurrentDate();
+            return new StringBuilder().buildTuple("?",currentDate, new Day(day).getDayOfWeek(), new Time(time).getTime(), "call", user, "?", new WeekOfMounth(Integer.parseInt(weekOfMounth)).getWeekOfMounth());
         }
 
         private String getContactName(Context context, String phoneNumber) {

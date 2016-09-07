@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/coloroDialog"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimary">
+
+        <TextView
+            android:id="@+id/AddNewHabits"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:text="Add New Habits"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@android:color/white" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp">
+
+        <ImageView
+            android:id="@+id/imageViewAdd"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_centerInParent="true"
+            android:adjustViewBounds="true"
+            android:paddingBottom="4dp"
+            android:src="@mipmap/ic_hobby" />
+
+        <TextView
+            android:id="@+id/rowHabitsTitleAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/margin_vertical"
+            android:layout_marginTop="5dp"
+            android:layout_toEndOf="@id/imageViewAdd"
+            android:text="Type: "
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/colorPrimaryDark" />
+
+        <TextView
+            android:id="@+id/contextRowHabitsTitleAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/rowHabitsTitleAdd"
+            android:layout_toEndOf="@id/rowHabitsTitleAdd"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/rowHabitsDateAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/rowHabitsTitleAdd"
+            android:layout_marginLeft="@dimen/margin_vertical"
+            android:layout_toEndOf="@id/imageViewAdd"
+            android:paddingTop="20dp"
+            android:text="Date: "
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/colorPrimaryDark" />
+
+        <Spinner
+            android:id="@+id/rowHabitsDateContextAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/rowHabitsDateAdd"
+            android:layout_toEndOf="@+id/rowHabitsTitleAdd"
+            android:paddingTop="12dp" />
+
+
+        <TextView
+            android:id="@+id/rowHabitsTimeAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/rowHabitsDateAdd"
+            android:layout_toEndOf="@+id/imageViewAdd"
+            android:paddingLeft="8dp"
+            android:paddingTop="20dp"
+            android:text="Time: "
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/colorPrimaryDark" />
+
+        <Spinner
+            android:id="@+id/rowHabitsTimeContextAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/contexTextIntoHabitRowAdd"
+            android:layout_alignBottom="@+id/rowHabitsTimeAdd"
+            android:layout_toEndOf="@+id/rowHabitsTimeAdd"
+            android:paddingTop="12dp"/>
+
+
+        <TextView
+            android:id="@+id/contexTextIntoHabitRowAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/rowHabitsTimeAdd"
+            android:layout_toEndOf="@+id/imageViewAdd"
+            android:paddingLeft="8dp"
+            android:paddingTop="20dp"
+            android:text="Text: "
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/colorPrimaryDark" />
+
+
+        <EditText
+            android:id="@+id/contexIntoHabitRowAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/contexTextIntoHabitRowAdd"
+            android:layout_alignStart="@+id/rowHabitsDateContextAdd"
+            android:background="@android:color/transparent"
+            android:hint="Write text"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginLeft="80dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="10dp"
+        android:background="@android:color/darker_gray" />
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="10dp">
+
+        <Button
+            android:id="@+id/buttonSave"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_toStartOf="@+id/buttonDelete"
+            android:text="Save"
+            android:textColor="@color/colorPrimaryDark" />
+
+        <Button
+            android:id="@+id/buttonDelete"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:text="Cancel"
+            android:textColor="@color/colorPrimaryDark" />
+    </RelativeLayout>
+
+</LinearLayout>

@@ -3,21 +3,22 @@ package com.unical.informatica.lorenzo.habits.model;
 /**
  * Created by Lorenzo on 10/08/2016.
  */
-public class HabitAction extends Habit{
+public class HabitAction extends Habit {
 
-    private String TEXT = "Remember to: ";
+    private String TEXT = "";
 
-    public HabitAction(String habit) {
-        super(habit);
+    public HabitAction() {
         type = "Action";
+        prefix ="Remember to:";
     }
 
     @Override
-    public String getTEXT() {
+    public String getText() {
         return TEXT;
     }
 
-    public void appendTEXT(String toAppend) {
-        this.TEXT += toAppend;
+    @Override
+    public void setText(String toAppend) {
+        this.TEXT = toAppend;
     }
 }

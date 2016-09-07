@@ -14,19 +14,20 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/log_title">
+        android:layout_height="match_parent"
+        android:layout_below="@+id/log_title"
+        android:fillViewport="true">
 
-        <ListView
+        <com.github.ksoichiro.android.observablescrollview.ObservableListView
+            xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/listHabits"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="@dimen/default_margin"
+            android:layout_height="match_parent"
+            android:id="@+id/list"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="@dimen/margin_vertical"
-            android:divider="@null"
-            android:animateLayoutChanges="true"
-            android:dividerHeight="0dp"/>
+            android:longClickable="true"
+            android:divider="@android:color/darker_gray"
+            android:dividerHeight="0.5dp"/>
 
     </ScrollView>
 
@@ -35,7 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="NO HABITS STORED"
+        android:text="NO ROUTINES STORED"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
 

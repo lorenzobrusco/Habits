@@ -8,16 +8,4 @@
         android:id="@+id/layout_setting"
         layout="@layout/content_main" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fabStartPage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:backgroundTint="#FF8000"
-        android:layout_marginRight="@dimen/fab_margin"
-        android:layout_marginBottom="@dimen/fab_margin"
-        android:clickable="true"
-        android:src="@drawable/ic_action_add"
-        app:layout_anchor="@id/layout_setting"
-        app:layout_anchorGravity="bottom|right"/>
-
 </android.support.design.widget.CoordinatorLayout>

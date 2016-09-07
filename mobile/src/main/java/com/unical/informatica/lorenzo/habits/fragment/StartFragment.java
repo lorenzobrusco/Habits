@@ -1,23 +1,30 @@
 package com.unical.informatica.lorenzo.habits.fragment;
 
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.app.ActionBar;
 import android.os.Bundle;
-import android.os.Vibrator;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
+import android.view.animation.TranslateAnimation;
+import android.widget.AdapterView;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
-
+import android.widget.Toast;
+import com.github.ksoichiro.android.observablescrollview.ObservableListView;
+import com.oguzdev.circularfloatingactionmenu.library.FloatingActionButton;
+import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
+import com.oguzdev.circularfloatingactionmenu.library.SubActionButton;
+import com.unical.informatica.lorenzo.habits.MainActivity;
 import com.unical.informatica.lorenzo.habits.R;
 import com.unical.informatica.lorenzo.habits.adapter.HabitAdapter;
 import com.unical.informatica.lorenzo.habits.manager.HabitsManager;
 import com.unical.informatica.lorenzo.habits.model.Habit;
-import com.unical.informatica.lorenzo.habits.model.HabitAction;
-import com.unical.informatica.lorenzo.habits.support.StringBuilder;
-
-import java.util.List;
+import com.unical.informatica.lorenzo.habits.view.CustomDialogAdd;
 
 
 /**
@@ -26,10 +33,11 @@ import java.util.List;
  */
 public class StartFragment extends Fragment {
 
-    private FloatingActionButton fab;
-    private List<Habit> listHabits;
+    private final String xmlFile = "habits.xml";
+    private FloatingActionButton actionButton;
+    private FloatingActionMenu actionButtonMenu;
     private HabitAdapter habitAdapter;
-    private ListView listView;
+    private ObservableListView listView;
     private TextView textView;
 
     @Override
@@ -40,28 +48,179 @@ public class StartFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.habits_layout, container, false);
-        /**
-         * remove this code
-         */
-        String record = "";
-        HabitAction habit = new HabitAction(record);
-        habit.appendTEXT(" you don't die");
-        HabitsManager.getInstance().addHabits(habit);
-        this.listView = (ListView) view.findViewById(R.id.listHabits);
-        this.listHabits = HabitsManager.getInstance().getHabits();
-        this.habitAdapter = new HabitAdapter(getContext(),this.listHabits);
-        this.listView.setAdapter(this.habitAdapter);
-        this.textView = (TextView)  view.findViewById(R.id.HabitsIsEmpty);
-        if(!this.listHabits.isEmpty())
-            this.textView.setVisibility(View.INVISIBLE);
-        this.fab = (FloatingActionButton) view.findViewById(R.id.fabStartPage);
-        this.fab.setOnClickListener(new View.OnClickListener() {
+        this.listView = (ObservableListView) view.findViewById(R.id.list);
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public void onClick(View v) {
-                //TODO add habits
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+                                           int pos, long id) {
+                Toast.makeText(getContext(), "show it on wearable", Toast.LENGTH_LONG).show();
+                Habit habit = HabitsManager.getInstance().getHabit(pos);
+                HabitsManager.getInstance().sendRoutines(habit.getType() + "--" + habit.getText());
+
+                return true;
             }
         });
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if (actionButtonMenu.isOpen())
+                    actionButtonMenu.close(true);
+                CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), HabitsManager.getInstance().getHabit(i).getType(),HabitsManager.getInstance().getHabit(i));
+                customDialogAdd.show();
+            }
+        });
+        this.textView = (TextView) view.findViewById(R.id.HabitsIsEmpty);
+        this.initListView();
+        if (actionButton == null)
+            this.initFAB();
         return view;
     }
 
+    @Override
+    public void setMenuVisibility(boolean menuVisible) {
+        super.setMenuVisibility(menuVisible);
+        if (this.actionButton != null) {
+            if (menuVisible) {
+                ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Routines");
+                this.initListView();
+                actionButton.setEnabled(true);
+                if (actionButtonMenu.isOpen())
+                    actionButtonMenu.close(true);
+                TranslateAnimation animate = new TranslateAnimation(0, 0, actionButton.getHeight() * 2, 0);
+                animate.setDuration(500);
+                animate.setFillAfter(true);
+                actionButton.startAnimation(animate);
+                actionButton.setVisibility(View.VISIBLE);
+            } else {
+                actionButton.setEnabled(false);
+                if (actionButtonMenu.isOpen())
+                    actionButtonMenu.close(true);
+                TranslateAnimation animate = new TranslateAnimation(0, 0, 0, actionButton.getHeight() * 2);
+                animate.setDuration(500);
+                animate.setFillAfter(true);
+                actionButton.startAnimation(animate);
+                actionButton.setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+
+
+    private void initFAB() {
+        final ImageView fabIconNew = new ImageView(this.getContext());
+        fabIconNew.setImageResource(R.drawable.ic_action_add);
+        actionButton = new com.oguzdev.circularfloatingactionmenu.library.FloatingActionButton.Builder(this.getActivity())
+                .setContentView(fabIconNew)
+                .setBackgroundDrawable(R.drawable.button_action_orange)
+                .build();
+
+        final int subActionButtonSize = getResources().getDimensionPixelSize(R.dimen.radius_small);
+        FrameLayout.LayoutParams dimensionSubActionButtons = new FrameLayout.LayoutParams(subActionButtonSize, subActionButtonSize);
+        SubActionButton.Builder subActionButtons = new SubActionButton.Builder(this.getActivity());
+        subActionButtons.setLayoutParams(dimensionSubActionButtons);
+
+        ImageView position = new ImageView(this.getContext());
+        ImageView action = new ImageView(this.getContext());
+        ImageView hobby = new ImageView(this.getContext());
+        ImageView other = new ImageView(this.getContext());
+
+        position.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_location, this.getContext().getTheme()));
+        action.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_action, this.getContext().getTheme()));
+        hobby.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_hobby, this.getContext().getTheme()));
+        other.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_edit, this.getContext().getTheme()));
+
+        actionButtonMenu = new FloatingActionMenu.Builder(this.getActivity())
+                .addSubActionView(subActionButtons.setContentView(position).setBackgroundDrawable(getResources().getDrawable(R.drawable.button_action_red, this.getContext().getTheme())).build())
+                .addSubActionView(subActionButtons.setContentView(action).setBackgroundDrawable(getResources().getDrawable(R.drawable.button_action_yellow, this.getContext().getTheme())).build())
+                .addSubActionView(subActionButtons.setContentView(hobby).setBackgroundDrawable(getResources().getDrawable(R.drawable.button_action_green, this.getContext().getTheme())).build())
+                .addSubActionView(subActionButtons.setContentView(other).setBackgroundDrawable(getResources().getDrawable(R.drawable.button_action_blue, this.getContext().getTheme())).build())
+                .attachTo(actionButton)
+                .build();
+
+        position.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                actionButtonMenu.close(true);
+                CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), "Position");
+                customDialogAdd.show();
+               /* Intent intent = new Intent(MainActivity.this, EventActivity.class);
+                intent.putExtra("Modify",true);
+                intent.putExtra("Type", TYPENOTE);
+                startActivity(intent);*/
+            }
+
+        });
+
+        action.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                actionButtonMenu.close(true);
+                CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), "Action");
+                customDialogAdd.show();
+               /* Intent intent = new Intent(MainActivity.this, EventActivity.class);
+                intent.putExtra("Modify",true);
+                intent.putExtra("Type", TYPENOTE);
+                startActivity(intent);*/
+            }
+
+        });
+
+        hobby.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                actionButtonMenu.close(true);
+                CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), "Hobby");
+                customDialogAdd.show();
+               /* Intent intent = new Intent(MainActivity.this, EventActivity.class);
+                intent.putExtra("Modify",true);
+                intent.putExtra("Type", TYPENOTE);
+                startActivity(intent);*/
+            }
+
+        });
+
+        other.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                actionButtonMenu.close(true);
+                CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), "Other");
+                customDialogAdd.show();
+               /* Intent intent = new Intent(MainActivity.this, EventActivity.class);
+                intent.putExtra("Modify",true);
+                intent.putExtra("Type", TYPENOTE);
+                startActivity(intent);*/
+            }
+
+        });
+
+        actionButtonMenu.setStateChangeListener(new FloatingActionMenu.MenuStateChangeListener() {
+
+            @Override
+            public void onMenuOpened(FloatingActionMenu menu) {
+                // Rotate the icon of rightLowerButton 45 degrees clockwise
+                fabIconNew.setRotation(0);
+                PropertyValuesHolder pvhR = PropertyValuesHolder.ofFloat(View.ROTATION, 45);
+                ObjectAnimator animation = ObjectAnimator.ofPropertyValuesHolder(fabIconNew, pvhR);
+                animation.start();
+
+            }
+
+            @Override
+            public void onMenuClosed(FloatingActionMenu menu) {
+                // Rotate the icon of rightLowerButton 45 degrees counter-clockwise
+                fabIconNew.setRotation(45);
+                PropertyValuesHolder pvhR = PropertyValuesHolder.ofFloat(View.ROTATION, 0);
+                ObjectAnimator animation = ObjectAnimator.ofPropertyValuesHolder(fabIconNew, pvhR);
+                animation.start();
+
+            }
+
+        });
+    }
+
+    private void initListView() {
+        this.habitAdapter = new HabitAdapter(getContext(), HabitsManager.getInstance().getHabits());
+        this.listView.setAdapter(this.habitAdapter);
+        if (!HabitsManager.getInstance().isEmpty())
+            this.textView.setVisibility(View.INVISIBLE);
+    }
 }
