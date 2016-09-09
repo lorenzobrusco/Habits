@@ -2,43 +2,37 @@ package com.unical.informatica.lorenzo.habits;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.unical.informatica.lorenzo.habits.adapter.ViewPagerAdapter;
-import com.unical.informatica.lorenzo.habits.fragment.LogFragment;
-import com.unical.informatica.lorenzo.habits.fragment.SettingFragment;
 import com.unical.informatica.lorenzo.habits.fragment.StartFragment;
 import com.unical.informatica.lorenzo.habits.manager.HabitsManager;
-import com.unical.informatica.lorenzo.habits.mining.Grouper;
 import com.unical.informatica.lorenzo.habits.model.Habit;
 import com.unical.informatica.lorenzo.habits.services.Record;
 import com.unical.informatica.lorenzo.habits.support.BuildFile;
 import com.unical.informatica.lorenzo.habits.support.XMLPullParserHandler;
 import com.unical.informatica.lorenzo.habits.utils.PermissionCheckUtils;
+import com.unical.informatica.lorenzo.habits.view.LogFile;
+import com.unical.informatica.lorenzo.habits.view.SettingActivity;
 
 import java.io.IOException;
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,10 +46,10 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private ViewPagerAdapter adapter;
     private TextView mTextView;
+    private Tracker mTracker;
     private static final String NOTIFICATION = "notification";
     private static final String VIBRATION = "vibration";
     private static final String WEARABLE = "wearable";
-    private static final int[] ICON = {R.drawable.ic_settings_white_24dp, R.drawable.ic_subtitles_white_24dp, R.drawable.ic_description_white_24dp};
 
 
     @Override
@@ -65,13 +59,14 @@ public class MainActivity extends AppCompatActivity {
 
         this.toolbar = (Toolbar) findViewById(R.id.toolbar);
         this.setSupportActionBar(toolbar);
-        this.getSupportActionBar().setIcon(R.mipmap.ic_info);
         this.viewPager = (ViewPager) findViewById(R.id.viewpager);
         this.setupViewPager(viewPager);
 
         this.tabLayout = (TabLayout) findViewById(R.id.tabs);
         this.tabLayout.setupWithViewPager(viewPager);
-        this.setupIconViewPager();
+
+        mTracker = this.getDefaultTracker();
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
 
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         HabitsManager.getInstance().setNotification(settings.getBoolean(NOTIFICATION, false));
@@ -85,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
         this.readHabitsFile();
         if (!hasAllRequiredPermissions()) {
             requestAllRequiredPermissions();
+        }else{
+            startService(new Intent(this, Record.class));
         }
         super.onStart();
     }
@@ -115,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (doubleBackToExitPressedOnce) {
-           super.onBackPressed();
+            super.onBackPressed();
             return;
         }
 
@@ -126,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void run() {
-                doubleBackToExitPressedOnce=false;
+                doubleBackToExitPressedOnce = false;
             }
         }, 2000);
     }
@@ -134,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-       // getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -145,12 +142,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-       /* int id = item.getItemId();
+        int id = item.getItemId();
         if (id == R.id.action_settings) {
-            Toast.makeText(this, "delete all", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this,SettingActivity.class));
             return true;
-
-        }*/
+        } else if (id == R.id.action_log) {
+            Intent intent = new Intent(this,LogFile.class);
+            startActivity(new Intent(this,LogFile.class));
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -199,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.READ_PHONE_STATE,
                 Manifest.permission.READ_CONTACTS,
                 Manifest.permission.RECEIVE_SMS,
+                Manifest.permission.ACCESS_NETWORK_STATE
         };
     }
 
@@ -239,24 +240,52 @@ public class MainActivity extends AppCompatActivity {
     private void setupViewPager(ViewPager viewPager) {
         /** setup the page in the view page*/
         this.adapter = new ViewPagerAdapter(getSupportFragmentManager());
-
-        final SettingFragment settingFragment = new SettingFragment();
-        final StartFragment startFragment = new StartFragment();
-        final LogFragment logFragment = new LogFragment();
-
-        adapter.addFragment(settingFragment, "Settings");
-        adapter.addFragment(startFragment, "Routines");
-        adapter.addFragment(logFragment, "Log");
-
+        adapter.addFragment(new StartFragment().setDay("SUNDAY"), "SUNDAY");
+        adapter.addFragment(new StartFragment().setDay("MONDAY"), "MONDAY");
+        adapter.addFragment(new StartFragment().setDay("TUESDAY"), "TUESDAY");
+        adapter.addFragment(new StartFragment().setDay("WEDNESDAY"), "WEDNESDAY");
+        adapter.addFragment(new StartFragment().setDay("THURSDAY"), "THURSDAY");
+        adapter.addFragment(new StartFragment().setDay("FRIDAY"), "FRIDAY");
+        adapter.addFragment(new StartFragment().setDay("SATURDAY"), "SATURDAY");
         viewPager.setAdapter(adapter);
-        viewPager.setCurrentItem(1);
-        HabitsManager.getInstance().setAdapter(this.adapter);
+        viewPager.setCurrentItem(this.getDayOfWeeks(HabitsManager.getInstance().getDay()));
+        HabitsManager.getInstance().setAdapter(adapter);
     }
 
-    public static void setupIconViewPager() {
+    private int getDayOfWeeks(String day) {
+        switch (day) {
+            case "SUNDAY":
+                return 0;
+            case "MONDAY":
+                return 1;
+            case "TUESDAY":
+                return 2;
+            case "WEDNESDAY":
+                return 3;
+            case "THURSDAY":
+                return 4;
+            case "FRIDAY":
+                return 5;
+            case "SATURDAY":
+                return 6;
+            default:
+                return -1;
+        }
+    }
+
+    synchronized public Tracker getDefaultTracker() {
+        if (mTracker == null) {
+            GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
+            // To enable debug logging use: adb shell setprop log.tag.GAv4 DEBUG
+            mTracker = analytics.newTracker(R.xml.global_tracker);
+        }
+        return mTracker;
+    }
+
+   /* public static void setupIconViewPager() {
         for (int i = 0; i < tabLayout.getTabCount(); i++) {
             tabLayout.getTabAt(i).setIcon(ICON[i]);
         }
-    }
+    }*/
 
 }

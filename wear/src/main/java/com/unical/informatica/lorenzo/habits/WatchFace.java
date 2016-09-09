@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
@@ -17,6 +18,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -25,8 +27,14 @@ import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
 import android.util.Log;
+import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowInsets;
+import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -56,7 +64,7 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
     private static final String WEAR_MESSAGE_PATH = "/message";
     private static final String WEAR_TEXT_PATH = "/text";
     private String type = "Nothing to rememeber";
-    private String text= "            good day";
+    private String text = "Good day";
 
     /**
      * Google connection
@@ -148,7 +156,7 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
     public void onMessageReceived(final MessageEvent messageEvent) {
         if (messageEvent.getPath().equalsIgnoreCase(WEAR_MESSAGE_PATH)) {
             this.sendMessage(WEAR_MESSAGE_PATH, String.valueOf(this.currentHeartRate));
-        } else if(messageEvent.getPath().equalsIgnoreCase(WEAR_TEXT_PATH)) {
+        } else if (messageEvent.getPath().equalsIgnoreCase(WEAR_TEXT_PATH)) {
             try {
                 final String message;
                 message = new String(messageEvent.getData(), "UTF-8");
@@ -200,7 +208,7 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
             this.mSensorManager.registerListener(this, this.mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
             this.time = 30000;
         }
-        this.enableHeartRate = ! this.enableHeartRate;
+        this.enableHeartRate = !this.enableHeartRate;
     }
 
 
@@ -236,68 +244,32 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
 
     }
 
-    private static class EngineHandler extends Handler {
-        private final WeakReference<Engine> mWeakReference;
-
-        public EngineHandler(WatchFace.Engine reference) {
-            mWeakReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            WatchFace.Engine engine = mWeakReference.get();
-            if (engine != null) {
-                switch (msg.what) {
-                    case MSG_UPDATE_TIME:
-                        engine.handleUpdateTimeMessage();
-                        break;
-                }
-            }
-        }
-    }
-
     /**
      * create class engine and implements service callback methods
      */
     private class Engine extends CanvasWatchFaceService.Engine {
+        static final int MSG_UPDATE_TIME = 0;
 
         /**
-         * resoures
+         * Handler to update the time periodically in interactive mode.
          */
-        final Resources resources = WatchFace.this.getResources();
-        final Handler mUpdateTimeHandler = new EngineHandler(this);
-        /**
-         * check if time is registered
-         */
-        boolean mRegisteredTimeZoneReceiver = false;
-        /**
-         * graphics object
-         */
-        Bitmap mBackgroundImage;
-        Bitmap mBackgroundScaledImage;
-        Paint mBackgroundPaint;
-        Paint mDatePaint;
-        Paint mTitleTextPaint;
-        Paint mTextPaint;
-        Paint mTimePaint;
-        Paint mSecondPaint;
-        /**
-         * check if wearable is ambient mode
-         */
-        boolean mAmbient;
-        /**
-         * Whether the display supports fewer bits for each color in ambient mode. When true, we
-         * disable anti-aliasing in ambient mode.
-         */
-        boolean mLowBitAmbient;
-        /**
-         * object to take current date
-         */
-        Time mTime;
-        Date mDate;
-        /**
-         * receiver to update the time zone
-         */
+        final Handler mUpdateTimeHandler = new Handler() {
+            @Override
+            public void handleMessage(Message message) {
+                switch (message.what) {
+                    case MSG_UPDATE_TIME:
+                        invalidate();
+                        if (shouldTimerBeRunning()) {
+                            long timeMs = System.currentTimeMillis();
+                            long delayMs = INTERACTIVE_UPDATE_RATE_MS
+                                    - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
+                            mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
+                        }
+                        break;
+                }
+            }
+        };
+
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -305,108 +277,85 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
                 mTime.setToNow();
             }
         };
-        /**
-         * dimensions
-         */
-        float mXOffsetDay;
-        float mYOffsetDay;
-        float mXOffsetTime;
-        float mYOffsetTime;
-        float mXOffsetSecond;
-        float mYOffsetSecond;
-        float mXOffsetText;
-        float mYOffsetText;
-        float mYOffsetTitleText;
+
+        boolean mRegisteredTimeZoneReceiver = false;
+
+        boolean mAmbient;
+
+        Time mTime;
+
+        float mXOffset = 0;
+        float mYOffset = 0;
+
+        private Bitmap mBackgroundBitmap;
+        private Bitmap mBackgroundScaledBitmap;
+
+        private int specW, specH;
+        private View myLayout;
+        private TextView day, time, second, title, text;
+        private final Point displaySize = new Point();
 
         /**
-         * initialize watch face
+         * Whether the display supports fewer bits for each color in ambient mode. When true, we
+         * disable anti-aliasing in ambient mode.
          */
+        boolean mLowBitAmbient;
+
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
 
-            /**
-             *  configure the system ui
-             */
             setWatchFaceStyle(new WatchFaceStyle.Builder(WatchFace.this)
-                    .setCardPeekMode(WatchFaceStyle.PEEK_MODE_VARIABLE)
+                    .setCardPeekMode(WatchFaceStyle.PEEK_MODE_SHORT)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
                     .setShowSystemUiTime(false)
                     .build());
-            /**
-             * create graphic styles
-             */
             Resources resources = WatchFace.this.getResources();
 
-            /**
-             * background image
-             */
-            Drawable backgroundDrawable = resources.getDrawable(R.drawable.bg2, null);
-            mBackgroundImage = ((BitmapDrawable) backgroundDrawable).getBitmap();
-
-            /**
-             * background color
-             */
-            mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(resources.getColor(R.color.background));
-
-            /**
-             *  types of writing
-             */
-            mTitleTextPaint = createTextPaint(resources.getColor(R.color.digital_title_text));
-            mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
-            mTimePaint = createTextPaint(resources.getColor(R.color.digital_time));
-            mSecondPaint = createTextPaint(resources.getColor(R.color.digital_text));
-            mDatePaint = createTextPaint(resources.getColor(R.color.digital_text));
+            Drawable backgroundDrawable = resources.getDrawable(R.drawable.background, null);
+            mBackgroundBitmap = ((BitmapDrawable) backgroundDrawable).getBitmap();
 
             mTime = new Time();
-            mDate = new Date();
+
+            // Inflate the layout that we're using for the watch face
+            LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            myLayout = inflater.inflate(R.layout.watchface_layout, null);
+
+            // Load the display spec - we'll need this later for measuring myLayout
+            Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE))
+                    .getDefaultDisplay();
+            display.getSize(displaySize);
+
+            // Find some views for later use
+            day = (TextView) myLayout.findViewById(R.id.day);
+            time = (TextView) myLayout.findViewById(R.id.timeText);
+            second = (TextView) myLayout.findViewById(R.id.timeSecond);
+            title = (TextView) myLayout.findViewById(R.id.title);
+            text = (TextView) myLayout.findViewById(R.id.text);
         }
 
-
-        /**
-         * when application was destroy
-         */
         @Override
         public void onDestroy() {
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             super.onDestroy();
         }
 
-        /**
-         * create text to paint hours minutes and seconds
-         */
-        private Paint createTextPaint(int textColor) {
-            Paint paint = new Paint();
-            paint.setColor(textColor);
-            paint.setTypeface(NORMAL_TYPEFACE);
-            paint.setAntiAlias(true);
-            return paint;
-        }
-
-        /**
-         * watch face became visible or invisible
-         */
         @Override
         public void onVisibilityChanged(boolean visible) {
             super.onVisibilityChanged(visible);
 
             if (visible) {
                 registerReceiver();
-                //  mLoadMeetingsHandler.sendEmptyMessage(MSG_LOAD_MEETINGS);
-                /** Update time zone in case it changed while we weren't visible. */
+
+                // Update time zone in case it changed while we weren't visible.
                 mTime.clear(TimeZone.getDefault().getID());
                 mTime.setToNow();
             } else {
                 unregisterReceiver();
-//                mLoadMeetingsHandler.removeMessages(MSG_LOAD_MEETINGS);
-                //              cancelLoadMeetingTask();
-                //TODO add snippet code above to take number of meetings
             }
 
-            /** Whether the timer should be running depends on whether we're visible (as well as
-             *  whether we're in ambient mode), so we may need to start or stop the timer.
-             */
+            // Whether the timer should be running depends on whether we're visible (as well as
+            // whether we're in ambient mode), so we may need to start or stop the timer.
             updateTimer();
         }
 
@@ -428,157 +377,90 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
         }
 
         @Override
-        public void onSurfaceChanged(
-                SurfaceHolder holder, int format, int width, int height) {
-            if (mBackgroundScaledImage == null
-                    || mBackgroundScaledImage.getWidth() != width
-                    || mBackgroundScaledImage.getHeight() != height) {
-                mBackgroundScaledImage = Bitmap.createScaledBitmap(mBackgroundImage,
-                        width, height, true /* filter */);
-            }
-            super.onSurfaceChanged(holder, format, width, height);
-        }
-
-        @Override
         public void onApplyWindowInsets(WindowInsets insets) {
             super.onApplyWindowInsets(insets);
-
-            /** Load resources that have alternate values for round watches. */
-            boolean isRound = insets.isRound();
-            /**
-             *  dimensions axes Y
-             */
-            mYOffsetDay = isRound ? resources.getDimension(R.dimen.digital_y_offset_day_round)
-                    : resources.getDimension(R.dimen.digital_y_offset_day);
-            mYOffsetTime = isRound ? resources.getDimension(R.dimen.digital_y_offset_time_round)
-                    : resources.getDimension(R.dimen.digital_y_offset_time);
-            mYOffsetSecond = isRound ? resources.getDimension(R.dimen.digital_y_offset_second_round)
-                    : resources.getDimension(R.dimen.digital_y_offset_second);
-            mYOffsetTitleText = isRound ? resources.getDimension(R.dimen.digital_y_offset_title_text_round)
-                    : resources.getDimension(R.dimen.digital_y_offset_text);
-            mYOffsetText = isRound ? resources.getDimension(R.dimen.digital_y_offset_text_round)
-                    : resources.getDimension(R.dimen.digital_y_offset_text);
-
-            /**
-             *  dimensions axes X
-             */
-            mXOffsetDay = isRound ? resources.getDimension(R.dimen.digital_x_offset_day_round)
-                    : resources.getDimension(R.dimen.digital_x_offset_day);
-            mXOffsetTime = isRound ? resources.getDimension(R.dimen.digital_x_offset_time_round)
-                    : resources.getDimension(R.dimen.digital_x_offset_time);
-            mXOffsetSecond = isRound ? resources.getDimension(R.dimen.digital_x_offset_second_round)
-                    : resources.getDimension(R.dimen.digital_x_offset_second);
-            mXOffsetText = isRound ? resources.getDimension(R.dimen.digital_x_offset_text_round)
-                    : resources.getDimension(R.dimen.digital_x_offset_text);
-
-           /* mXOffset = resources.getDimension(isRound
-                    ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);*/
-            float dateSize = resources.getDimension(isRound
-                    ? R.dimen.digital_date_size_round : R.dimen.digital_date_size);
-            float timeSize = resources.getDimension(isRound
-                    ? R.dimen.digital_time_size_ambient_round : R.dimen.digital_time_size);
-            float textSize = resources.getDimension(isRound
-                    ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
-            float secondSize = resources.getDimension(isRound
-                    ? R.dimen.digital_second_size_round : R.dimen.digital_second_size);
-            mDatePaint.setTextSize(dateSize);
-            mTimePaint.setTextSize(timeSize);
-            mSecondPaint.setTextSize(secondSize);
-            mTitleTextPaint.setTextSize(textSize);
-            mTextPaint.setTextSize(textSize);
-
+            // Recompute the MeasureSpec fields - these determine the actual size of the layout
+            specW = View.MeasureSpec.makeMeasureSpec(displaySize.x, View.MeasureSpec.EXACTLY);
+            specH = View.MeasureSpec.makeMeasureSpec(displaySize.y, View.MeasureSpec.EXACTLY);
         }
 
-        /**
-         * get device features
-         */
         @Override
         public void onPropertiesChanged(Bundle properties) {
             super.onPropertiesChanged(properties);
             mLowBitAmbient = properties.getBoolean(PROPERTY_LOW_BIT_AMBIENT, false);
         }
 
-        /**
-         * time changed
-         */
         @Override
         public void onTimeTick() {
             super.onTimeTick();
             invalidate();
         }
 
-        /**
-         * wearable switched between mode
-         */
+        @Override
+        public void onSurfaceChanged(
+                SurfaceHolder holder, int format, int width, int height) {
+            if (mBackgroundScaledBitmap == null
+                    || mBackgroundScaledBitmap.getWidth() != width
+                    || mBackgroundScaledBitmap.getHeight() != height) {
+                mBackgroundScaledBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
+                        width, height, true /* filter */);
+            }
+            super.onSurfaceChanged(holder, format, width, height);
+        }
+
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
             super.onAmbientModeChanged(inAmbientMode);
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
-                if (mLowBitAmbient) {
-                    mTitleTextPaint.setAntiAlias(!inAmbientMode);
+
+                // Show/hide the seconds fields
+                if (inAmbientMode) {
+                    day.setTextColor(getResources().getColor(R.color.white));
+                    second.setTextColor(getResources().getColor(R.color.white));
+                    title.setVisibility(View.GONE);
+                    text.setVisibility(View.GONE);
+
+                } else {
+                    day.setTextColor(getResources().getColor(R.color.digital_day));
+                    second.setTextColor(getResources().getColor(R.color.digital_second));
+                    text.setVisibility(View.VISIBLE);
+                    title.setVisibility(View.VISIBLE);
                 }
                 invalidate();
             }
 
-            /** Whether the timer should be running depends on whether we're visible (as well as
-             * whether we're in ambient mode), so we may need to start or stop the timer.
-             */
+            // Whether the timer should be running depends on whether we're visible (as well as
+            // whether we're in ambient mode), so we may need to start or stop the timer.
             updateTimer();
         }
 
-        /**
-         * draw watch face
-         */
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
-            /** Draw the background. */
-            if (isInAmbientMode()) {
-                canvas.drawColor(Color.BLACK);
-            } else {
-
-                canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundPaint);
-                // TODO
-                // canvas.drawBitmap(mBackgroundScaledImage, 0, 0, null);
-
-            }
-
-            /** Draw H:MM in ambient mode or H:MM:SS in interactive mode. */
+            // Get the current Time
             mTime.setToNow();
 
-            if (!isInAmbientMode()) {
 
-                SimpleDateFormat mSimpleDateformat = new SimpleDateFormat("E");
-                Calendar mCalendar = Calendar.getInstance();
-                mCalendar.setTime(mDate);
-                String day = mSimpleDateformat.format(mDate) + " " + mCalendar.get(Calendar.DAY_OF_MONTH);
-                canvas.drawText(day, mXOffsetDay, mYOffsetDay, mDatePaint);
-                mTimePaint.setTextSize(resources.getDimension(R.dimen.digital_time_size_round));
-                String time = String.format("%d:%02d", mTime.hour, mTime.minute);
-                String second = String.format("%02d", mTime.second);
-                if (mTime.hour < 10) {
-                    canvas.drawText(time, mXOffsetTime, mYOffsetTime, mTimePaint);
-                    canvas.drawText(second, mXOffsetSecond, mYOffsetSecond, mSecondPaint);
-                } else {
-                    canvas.drawText(time, mXOffsetTime - 20, mYOffsetTime, mTimePaint);
-                    canvas.drawText(second, mXOffsetSecond + 13, mYOffsetSecond, mSecondPaint);
-                }
-                //TODO text to get from ai
+            // Apply it to the date fields
+            day.setText(String.format("%ta", mTime.toMillis(false)) + " " + String.format("%02d", mTime.monthDay));
 
-                canvas.drawText(WatchFace.this.type, mXOffsetText, mYOffsetTitleText, mTitleTextPaint);
-                canvas.drawText(WatchFace.this.text, mXOffsetText, mYOffsetText, mTextPaint);
+            time.setText(String.format("%02d", mTime.hour) + ":" + String.format("%02d", mTime.minute));
+            second.setText(String.format("%02d", mTime.second));
+            title.setText(WatchFace.this.type);
+            text.setText(WatchFace.this.text);
+            // Update the layout
+            myLayout.measure(specW, specH);
+            myLayout.layout(0, 0, myLayout.getMeasuredWidth(), myLayout.getMeasuredHeight());
 
-            } else {
-
-                mTimePaint.setTextSize(resources.getDimension(R.dimen.digital_time_size_ambient_round));
-                String time = String.format("%d:%02d", mTime.hour, mTime.minute);
-                if (mTime.hour < 10)
-                    canvas.drawText(time, mXOffsetTime - 15, mYOffsetTime + 50, mTimePaint);
-                else
-                    canvas.drawText(time, mXOffsetTime - 35, mYOffsetTime + 50, mTimePaint);
-            }
-
-
+            // Draw it to the Canvas
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                canvas.drawColor(getResources().getColor(R.color.background, getTheme()));
+            } else
+                canvas.drawColor(getResources().getColor(R.color.background));
+            if (isInAmbientMode())
+                canvas.drawColor(Color.BLACK);
+            canvas.translate(mXOffset, mYOffset);
+            myLayout.draw(canvas);
         }
 
         /**
@@ -599,19 +481,5 @@ public class WatchFace extends CanvasWatchFaceService implements MessageApi.Mess
         private boolean shouldTimerBeRunning() {
             return isVisible() && !isInAmbientMode();
         }
-
-        /**
-         * Handle updating the time periodically in interactive mode.
-         */
-        private void handleUpdateTimeMessage() {
-            invalidate();
-            if (shouldTimerBeRunning()) {
-                long timeMs = System.currentTimeMillis();
-                long delayMs = INTERACTIVE_UPDATE_RATE_MS
-                        - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
-                mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
-            }
-        }
-
     }
 }

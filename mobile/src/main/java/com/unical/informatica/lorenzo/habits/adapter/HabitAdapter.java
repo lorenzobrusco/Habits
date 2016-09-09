@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.unical.informatica.lorenzo.habits.R;
 import com.unical.informatica.lorenzo.habits.manager.HabitsManager;
@@ -54,7 +55,7 @@ public class HabitAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
+    public View getView(final int i, View view, ViewGroup viewGroup) {
         if (view == null) {
             view = LayoutInflater.from(mContext).inflate(R.layout.habit_row_layout, null);
         }
@@ -67,13 +68,13 @@ public class HabitAdapter extends BaseAdapter {
         final TextView time = (TextView) view.findViewById(R.id.rowHabitsTimeContext);
         final TextView text = (TextView) view.findViewById(R.id.contexIntoHabitRow);
         if(habit instanceof HabitPosition)
-            image.setImageDrawable(mContext.getResources().getDrawable(R.mipmap.ic_map,mContext.getTheme()));
+            image.setImageDrawable(mContext.getResources().getDrawable(R.drawable.position,mContext.getTheme()));
         else if(habit instanceof HabitAction)
-            image.setImageDrawable(mContext.getResources().getDrawable(R.mipmap.ic_action_phone,mContext.getTheme()));
+            image.setImageDrawable(mContext.getResources().getDrawable(R.drawable.action,mContext.getTheme()));
         else if(habit instanceof HabitHobby)
-            image.setImageDrawable(mContext.getResources().getDrawable(R.mipmap.ic_hobby,mContext.getTheme()));
+            image.setImageDrawable(mContext.getResources().getDrawable(R.drawable.hobby,mContext.getTheme()));
         else if(habit instanceof HabitOther)
-            image.setImageDrawable(mContext.getResources().getDrawable(R.mipmap.ic_other,mContext.getTheme()));
+            image.setImageDrawable(mContext.getResources().getDrawable(R.drawable.other,mContext.getTheme()));
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -82,7 +83,7 @@ public class HabitAdapter extends BaseAdapter {
                         .setMessage("Are you sure you want to delete this habit?")
                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                HabitsManager.getInstance().deleteHabit(index);
+                                HabitsManager.getInstance().deleteHabit(habit);
                                 HabitsManager.getInstance().getAdapter().notifyDataSetChanged();
                             }
                         })

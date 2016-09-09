@@ -4,5 +4,7 @@
     <color name="digital_time">#E0E0E0</color>
     <color name="digital_text">#A0A0A0</color>
     <color name="digital_title_text">#598FFF</color>
+    <color name="digital_day">#ff8000</color>
+    <color name="digital_second">#55c255</color>
 
 </resources>

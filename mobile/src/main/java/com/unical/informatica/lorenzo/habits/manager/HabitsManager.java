@@ -112,7 +112,6 @@ public class HabitsManager implements GoogleApiClient.ConnectionCallbacks, Googl
         Log.i("Connected", "failed connected");
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
     private void getLocation(Context context) {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -120,9 +119,10 @@ public class HabitsManager implements GoogleApiClient.ConnectionCallbacks, Googl
         }
         mLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
-        this.location = this.getAddress(context, mLocation.getLatitude(), mLocation.getLongitude());
-        this.location += " - Langitudine:" + mLocation.getLatitude() + ", Longitude:" + mLocation.getLongitude();
-        if (this.location.contains("null")) {
+        if (mLocation != null) {
+            this.location = this.getAddress(context, mLocation.getLatitude(), mLocation.getLongitude());
+            this.location += " - Langitudine:" + mLocation.getLatitude() + ", Longitude:" + mLocation.getLongitude();
+        } else if (mLocation == null || this.location.contains("null")) {
             this.location = "?";
         }
     }
@@ -222,6 +222,11 @@ public class HabitsManager implements GoogleApiClient.ConnectionCallbacks, Googl
         return new Time(Integer.parseInt(this.time)).getTime();
     }
 
+    public String getDay() {
+        this.getTime();
+        return new Day(this.day).getDayOfWeek();
+    }
+
     public void buildRecord(Context context) {
         this.getLocation(context);
         this.sendMessage(WEAR_MESSAGE_PATH, "send heart_rate");
@@ -236,19 +241,19 @@ public class HabitsManager implements GoogleApiClient.ConnectionCallbacks, Googl
     public void buildNotify(Context mContext, Habit habit) {
         if (!this.isNotification())
             return;
-        int image = R.mipmap.ic_icon_activity;
-        if (habit instanceof HabitPosition)
-            image = R.mipmap.ic_map;
+        int image = R.mipmap.ic_launcher_ic;
+  /*      if (habit instanceof HabitPosition)
+            image = R.drawable.position;
         else if (habit instanceof HabitAction)
-            image = R.mipmap.ic_action_phone;
+            image = R.drawable.action;
         else if (habit instanceof HabitHobby)
-            image = R.mipmap.ic_hobby;
+            image = R.drawable.hobby;
         else if (habit instanceof HabitOther)
-            image = R.mipmap.ic_other;
-
+            image = R.drawable.hobby;
+*/
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(mContext)
-                        .setSmallIcon(R.mipmap.ic_icon_activity)
+                        .setSmallIcon(R.mipmap.ic_launcher_ic)
                         .setLargeIcon(BitmapFactory.decodeResource(
                                 mContext.getResources(), image))
                         .setContentTitle(habit.getPrefix())
@@ -273,9 +278,9 @@ public class HabitsManager implements GoogleApiClient.ConnectionCallbacks, Googl
     public void buildNotifyAI(Context mContext, String text) {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(mContext)
-                        .setSmallIcon(R.mipmap.ic_icon_activity)
+                        .setSmallIcon(R.mipmap.ic_icon)
                         .setLargeIcon(BitmapFactory.decodeResource(
-                                mContext.getResources(), R.mipmap.ic_ai))
+                                mContext.getResources(), R.drawable.ai))
                         .setContentTitle("I supposed:")
                         .setContentText(text)
                         .setAutoCancel(true);
@@ -348,8 +353,8 @@ public class HabitsManager implements GoogleApiClient.ConnectionCallbacks, Googl
         this.habits.add(habit);
     }
 
-    public void deleteHabit(int index) {
-        this.habits.remove(index);
+    public void deleteHabit(Habit habit) {
+        this.habits.remove(habit);
     }
 
     public boolean isChanged() {
@@ -360,7 +365,16 @@ public class HabitsManager implements GoogleApiClient.ConnectionCallbacks, Googl
         this.changed = changed;
     }
 
-    public List<Habit> getHabits() {
+    public List<Habit> getHabits(final String day) {
+        List<Habit> tmp = new ArrayList<>();
+        for (Habit habit : this.habits) {
+            if (habit.getmDay().equalsIgnoreCase(day) || habit.getmDay().equalsIgnoreCase("everyday"))
+                tmp.add(habit);
+        }
+        return tmp;
+    }
+
+    public List<Habit> getHabitsToSave() {
         return this.habits;
     }
 
@@ -370,14 +384,6 @@ public class HabitsManager implements GoogleApiClient.ConnectionCallbacks, Googl
 
     public Habit getHabit(int index) {
         return this.habits.get(index);
-    }
-
-    public boolean isEmpty() {
-        return this.habits.isEmpty();
-    }
-
-    public int getSize() {
-        return this.habits.size();
     }
 
     public ViewPagerAdapter getAdapter() {

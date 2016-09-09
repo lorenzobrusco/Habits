@@ -77,7 +77,7 @@ public class CustomDialogAdd extends Dialog implements View.OnClickListener {
         if (modify)
             titleDialog.setText("Modify " + type);
         if (type.equals("Position")) {
-            image.setImageDrawable(mContext.getResources().getDrawable(R.mipmap.ic_map, mContext.getTheme()));
+            image.setImageDrawable(mContext.getResources().getDrawable(R.drawable.position, mContext.getTheme()));
             relativeLayout.setBackgroundColor(getContext().getResources().getColor(R.color.position));
             title.setTextColor(getContext().getResources().getColor(R.color.position));
             date.setTextColor(getContext().getResources().getColor(R.color.position));
@@ -88,7 +88,7 @@ public class CustomDialogAdd extends Dialog implements View.OnClickListener {
             if (!this.modify)
                 this.habit = new HabitPosition();
         } else if (type.equals("Action")) {
-            image.setImageDrawable(mContext.getResources().getDrawable(R.mipmap.ic_action_phone, mContext.getTheme()));
+            image.setImageDrawable(mContext.getResources().getDrawable(R.drawable.action, mContext.getTheme()));
             relativeLayout.setBackgroundColor(getContext().getResources().getColor(R.color.action));
             title.setTextColor(getContext().getResources().getColor(R.color.action));
             date.setTextColor(getContext().getResources().getColor(R.color.action));
@@ -99,7 +99,7 @@ public class CustomDialogAdd extends Dialog implements View.OnClickListener {
             if (!this.modify)
                 this.habit = new HabitAction();
         } else if (type.equals("Hobby")) {
-            image.setImageDrawable(mContext.getResources().getDrawable(R.mipmap.ic_hobby, mContext.getTheme()));
+            image.setImageDrawable(mContext.getResources().getDrawable(R.drawable.hobby, mContext.getTheme()));
             relativeLayout.setBackgroundColor(getContext().getResources().getColor(R.color.hobby));
             title.setTextColor(getContext().getResources().getColor(R.color.hobby));
             date.setTextColor(getContext().getResources().getColor(R.color.hobby));
@@ -110,7 +110,7 @@ public class CustomDialogAdd extends Dialog implements View.OnClickListener {
             if (!this.modify)
                 this.habit = new HabitHobby();
         } else if (type.equals("Other")) {
-            image.setImageDrawable(mContext.getResources().getDrawable(R.mipmap.ic_other, mContext.getTheme()));
+            image.setImageDrawable(mContext.getResources().getDrawable(R.drawable.other, mContext.getTheme()));
             relativeLayout.setBackgroundColor(getContext().getResources().getColor(R.color.other));
             save.setTextColor(getContext().getResources().getColor(R.color.other));
             title.setTextColor(getContext().getResources().getColor(R.color.other));
@@ -139,8 +139,9 @@ public class CustomDialogAdd extends Dialog implements View.OnClickListener {
                 habit.setmDay(mday.getSelectedItem().toString());
                 habit.setmTime(mtime.getSelectedItem().toString());
                 habit.createID();
-                if (!modify)
+                if (!modify) {
                     HabitsManager.getInstance().addHabits(habit);
+                }
                 HabitsManager.getInstance().getAdapter().notifyDataSetChanged();
                 dismiss();
                 break;

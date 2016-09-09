@@ -20,7 +20,6 @@ public class LoadActivity extends AppCompatActivity {
     protected void onCreate( Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.loading_layout);
-        startService(new Intent(this, Record.class));
         final Handler handler = new Handler();
         runnable = new Runnable() {
             public void run() {

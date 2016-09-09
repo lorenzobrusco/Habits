@@ -107,27 +107,6 @@ public class MiningPosition {
         }
     }
 
-    private int getDayOfWeeks(String day) {
-        switch (day) {
-            case "SUNDAY":
-                return 0;
-            case "MONDAY":
-                return 1;
-            case "TUESDAY":
-                return 2;
-            case "WEDNESDAY":
-                return 3;
-            case "THURSDAY":
-                return 4;
-            case "FRIDAY":
-                return 5;
-            case "SATURDAY":
-                return 6;
-            default:
-                return -1;
-        }
-    }
-
     private String getBestHabit(final List<String> habits) {
         int max = records.get(habits.get(0));
         int index = 0;

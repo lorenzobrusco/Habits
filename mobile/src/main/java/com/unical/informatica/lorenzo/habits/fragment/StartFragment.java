@@ -2,10 +2,13 @@ package com.unical.informatica.lorenzo.habits.fragment;
 
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +18,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.github.ksoichiro.android.observablescrollview.ObservableListView;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionButton;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
@@ -31,14 +35,16 @@ import com.unical.informatica.lorenzo.habits.view.CustomDialogAdd;
  * Created by Lorenzo on 03/05/2016.
  * This fragment contein start layout
  */
+
 public class StartFragment extends Fragment {
 
     private final String xmlFile = "habits.xml";
-    private FloatingActionButton actionButton;
-    private FloatingActionMenu actionButtonMenu;
+    private static FloatingActionButton actionButton;
+    private static FloatingActionMenu actionButtonMenu;
     private HabitAdapter habitAdapter;
     private ObservableListView listView;
     private TextView textView;
+    private String day;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -67,7 +73,7 @@ public class StartFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if (actionButtonMenu.isOpen())
                     actionButtonMenu.close(true);
-                CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), HabitsManager.getInstance().getHabit(i).getType(),HabitsManager.getInstance().getHabit(i));
+                CustomDialogAdd customDialogAdd = new CustomDialogAdd(getContext(), HabitsManager.getInstance().getHabits(day).get(i).getType(), HabitsManager.getInstance().getHabits(day).get(i));
                 customDialogAdd.show();
             }
         });
@@ -77,35 +83,6 @@ public class StartFragment extends Fragment {
             this.initFAB();
         return view;
     }
-
-    @Override
-    public void setMenuVisibility(boolean menuVisible) {
-        super.setMenuVisibility(menuVisible);
-        if (this.actionButton != null) {
-            if (menuVisible) {
-                ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle("Routines");
-                this.initListView();
-                actionButton.setEnabled(true);
-                if (actionButtonMenu.isOpen())
-                    actionButtonMenu.close(true);
-                TranslateAnimation animate = new TranslateAnimation(0, 0, actionButton.getHeight() * 2, 0);
-                animate.setDuration(500);
-                animate.setFillAfter(true);
-                actionButton.startAnimation(animate);
-                actionButton.setVisibility(View.VISIBLE);
-            } else {
-                actionButton.setEnabled(false);
-                if (actionButtonMenu.isOpen())
-                    actionButtonMenu.close(true);
-                TranslateAnimation animate = new TranslateAnimation(0, 0, 0, actionButton.getHeight() * 2);
-                animate.setDuration(500);
-                animate.setFillAfter(true);
-                actionButton.startAnimation(animate);
-                actionButton.setVisibility(View.INVISIBLE);
-            }
-        }
-    }
-
 
     private void initFAB() {
         final ImageView fabIconNew = new ImageView(this.getContext());
@@ -207,10 +184,21 @@ public class StartFragment extends Fragment {
         });
     }
 
+    @Override
+    public void setMenuVisibility(boolean menuVisible) {
+        super.setMenuVisibility(menuVisible);
+    }
+
+    public Fragment setDay(String day) {
+        this.day = day;
+        return this;
+    }
+
     private void initListView() {
-        this.habitAdapter = new HabitAdapter(getContext(), HabitsManager.getInstance().getHabits());
+        this.habitAdapter = new HabitAdapter(getContext(), HabitsManager.getInstance().getHabits(day));
         this.listView.setAdapter(this.habitAdapter);
-        if (!HabitsManager.getInstance().isEmpty())
+        if (!HabitsManager.getInstance().getHabits(day).isEmpty())
             this.textView.setVisibility(View.INVISIBLE);
     }
+
 }

@@ -51,14 +51,12 @@ public class ViewPagerAdapter extends FragmentPagerAdapter  {
     @Override
     public void notifyDataSetChanged() {
         super.notifyDataSetChanged();
-        MainActivity.setupIconViewPager();
     }
 
-    /**
     @Override
     public CharSequence getPageTitle(int position) {
         return mFragmentTitleList.get(position);
-    }*/
+    }
 
 
 }

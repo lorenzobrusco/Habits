@@ -24,22 +24,43 @@ public class Day {
             case "dom": {
                 return SUNDAY;
             }
+            case "Sun": {
+                return SUNDAY;
+            }
             case "lun": {
+                return MONDAY;
+            }
+            case "Mon": {
                 return MONDAY;
             }
             case "mar": {
                 return TUESDAY;
             }
+            case "Tue": {
+                return TUESDAY;
+            }
             case "mer": {
+                return WEDNESDAY;
+            }
+            case "Wed": {
                 return WEDNESDAY;
             }
             case "gio": {
                 return THURSDAY;
             }
+            case "Thu": {
+                return THURSDAY;
+            }
             case "ven": {
                 return FRIDAY;
             }
+            case "Fri": {
+                return FRIDAY;
+            }
             case "sab": {
+                return SATURDAY;
+            }
+            case "Sat": {
                 return SATURDAY;
             }
             default:

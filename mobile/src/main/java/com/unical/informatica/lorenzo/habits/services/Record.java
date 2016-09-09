@@ -65,7 +65,7 @@ public class Record extends Service {
         handler = new Handler();
         runnable = new Runnable() {
             public void run() {
-               // HabitsManager.getInstance().buildRecord(Record.this);
+                HabitsManager.getInstance().buildRecord(Record.this);
                 SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
                 SharedPreferences.Editor editor = settings.edit();
                 if (!currentTime.equals(HabitsManager.getInstance().getNameTime())) {

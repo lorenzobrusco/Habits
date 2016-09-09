@@ -48,7 +48,8 @@ public class XMLPullParserHandler {
         xmlSerializer.setOutput(writer);
 
         xmlSerializer.startDocument("UTF-8", true);
-        for (Habit habit : HabitsManager.getInstance().getHabits()) {
+        for (Habit habit : HabitsManager.getInstance().getHabitsToSave()) {
+            Log.i("Debug",habit.getText());
             if (habit instanceof HabitPosition)
                 type = "HabitPosition";
             else if (habit instanceof HabitAction)
